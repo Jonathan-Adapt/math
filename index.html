@@ -9,7 +9,7 @@
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             background-color: #f0f8ff;
             margin: 0;
-            padding: 20px;
+            padding: 10px; /* Reduced from 20px */
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Changed from center to flex-start */
@@ -20,27 +20,25 @@
             background-color: white;
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            padding: 30px;
+            padding: 20px; /* Reduced from 30px */
             width: 90%;
             max-width: 500px;
             text-align: center;
-            margin-top: 20px; /* Added margin at the top */
-            margin-bottom: 100px; /* Added bottom margin for keyboard space */
+            margin-top: 5px; /* Added small margin at the top */
         }
         
         h1 {
             color: #4a6fa5;
             margin-top: 0;
-            font-size: 24px; /* Reduced size for better mobile view */
         }
         
         .welcome, .question-section, .results, .num-questions {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .emoji {
-            font-size: 24px; /* Reduced from 30px */
-            margin: 5px 0; /* Reduced from 10px */
+            font-size: 30px;
+            margin: 10px 0;
         }
         
         button {
@@ -72,13 +70,13 @@
         
         .question {
             font-size: 24px;
-            margin: 15px 0; /* Reduced from 20px */
+            margin: 20px 0;
         }
         
         .feedback {
             font-size: 18px;
             margin: 10px 0;
-            min-height: 40px; /* Reduced from 50px */
+            min-height: 50px;
         }
         
         .correct {
@@ -90,37 +88,12 @@
         }
         
         .progress {
-            margin: 10px 0; /* Reduced from 20px */
+            margin: 20px 0;
             font-size: 16px;
         }
         
         .hidden {
             display: none;
-        }
-        
-        /* Added for better mobile experience */
-        @media (max-height: 700px) {
-            body {
-                padding-top: 5px;
-            }
-            
-            .container {
-                padding: 15px;
-                margin-top: 5px;
-            }
-            
-            h1 {
-                font-size: 20px;
-                margin-bottom: 10px;
-            }
-            
-            .question {
-                margin: 10px 0;
-            }
-            
-            .feedback {
-                min-height: 30px;
-            }
         }
     </style>
 </head>
@@ -194,13 +167,6 @@
             if (event.key === 'Enter') {
                 checkAnswer();
             }
-        });
-        
-        // Added function to scroll to the input field when it gets focus
-        answerInput.addEventListener('focus', function() {
-            setTimeout(function() {
-                window.scrollTo(0, answerInput.offsetTop - 15);
-            }, 300);
         });
         
         // Generate a random question
@@ -296,18 +262,12 @@
                 resultEmoji.textContent = '💪';
                 message.textContent = "Good effort! With more practice, you'll improve!";
             }
-            
-            // Scroll to top of results
-            window.scrollTo(0, 0);
         }
         
         // Reset game to play again
         function resetGame() {
             welcomeSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
-            
-            // Scroll to top when restarting
-            window.scrollTo(0, 0);
         }
     </script>
 </body>
