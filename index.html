@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Master</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #4a6fa5;
+            margin-top: 0;
+        }
+        
+        .welcome, .question-section, .results, .num-questions {
+            margin-bottom: 25px;
+        }
+        
+        .emoji {
+            font-size: 30px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: inherit;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #3a5980;
+        }
+        
+        input[type="number"], input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #4a6fa5;
+            border-radius: 8px;
+            width: 100px;
+            text-align: center;
+            font-family: inherit;
+        }
+        
+        .question {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        
+        .feedback {
+            font-size: 18px;
+            margin: 10px 0;
+            min-height: 50px;
+        }
+        
+        .correct {
+            color: #2ecc71;
+        }
+        
+        .incorrect {
+            color: #e74c3c;
+        }
+        
+        .progress {
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Section -->
+        <div id="welcome" class="welcome">
+            <h1>✨ Multiplication Master! ✨</h1>
+            <div class="emoji">🔢 ✖️ 🧮</div>
+            <p>Practice your multiplication tables from 1×1 to 10×10!</p>
+            <p>Let's see how many you can get right!</p>
+            
+            <div class="num-questions">
+                <p>How many questions would you like to answer?</p>
+                <input type="number" id="numQuestions" min="5" max="20" value="10">
+            </div>
+            
+            <button id="startButton">Start Practice!</button>
+        </div>
+        
+        <!-- Question Section -->
+        <div id="questionSection" class="question-section hidden">
+            <h1>Multiplication Master</h1>
+            <div class="progress" id="progress">Question 1 of 10</div>
+            <div class="question" id="question">What is 5 × 7?</div>
+            <input type="number" id="answer" placeholder="Your answer">
+            <div class="feedback" id="feedback"></div>
+            <button id="submitButton">Submit</button>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="results" class="results hidden">
+            <h1>🎉 Results 🎉</h1>
+            <div id="score">You got 8 out of 10 correct!</div>
+            <div id="percentage">That's 80%!</div>
+            <div id="timeTaken">Time taken: 45.2 seconds</div>
+            <div class="emoji" id="resultEmoji">🌟🌟</div>
+            <div id="message">Great job! You're really good at this!</div>
+            <button id="playAgainButton">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        let currentQuestion = 0;
+        let totalQuestions = 10;
+        let score = 0;
+        let startTime;
+        let num1, num2, correctAnswer;
+        
+        // DOM Elements
+        const welcomeSection = document.getElementById('welcome');
+        const questionSection = document.getElementById('questionSection');
+        const resultsSection = document.getElementById('results');
+        const progressElement = document.getElementById('progress');
+        const questionElement = document.getElementById('question');
+        const answerInput = document.getElementById('answer');
+        const feedbackElement = document.getElementById('feedback');
+        const numQuestionsInput = document.getElementById('numQuestions');
+        
+        // Buttons
+        const startButton = document.getElementById('startButton');
+        const submitButton = document.getElementById('submitButton');
+        const playAgainButton = document.getElementById('playAgainButton');
+        
+        // Event listeners
+        startButton.addEventListener('click', startGame);
+        submitButton.addEventListener('click', checkAnswer);
+        playAgainButton.addEventListener('click', resetGame);
+        answerInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+        
+        // Generate a random question
+        function generateQuestion() {
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * 10) + 1;
+            correctAnswer = num1 * num2;
+            questionElement.textContent = `What is ${num1} × ${num2}?`;
+            answerInput.value = '';
+            answerInput.focus();
+        }
+        
+        // Start the game
+        function startGame() {
+            // Get number of questions from input
+            totalQuestions = parseInt(numQuestionsInput.value);
+            if (totalQuestions < 5) totalQuestions = 5;
+            if (totalQuestions > 20) totalQuestions = 20;
+            
+            // Hide welcome, show questions
+            welcomeSection.classList.add('hidden');
+            questionSection.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            
+            // Reset game state
+            currentQuestion = 0;
+            score = 0;
+            startTime = new Date();
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
+            
+            // Set up first question
+            progressElement.textContent = `Question 1 of ${totalQuestions}`;
+            generateQuestion();
+        }
+        
+        // Check the user's answer
+        function checkAnswer() {
+            if (answerInput.value === '') return;
+            
+            const userAnswer = parseInt(answerInput.value);
+            
+            if (userAnswer === correctAnswer) {
+                feedbackElement.textContent = '✅ Correct! Well done!';
+                feedbackElement.className = 'feedback correct';
+                score++;
+            } else {
+                feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
+                feedbackElement.className = 'feedback incorrect';
+            }
+            
+            // Move to next question or end game
+            currentQuestion++;
+            
+            if (currentQuestion < totalQuestions) {
+                setTimeout(() => {
+                    progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+                    generateQuestion();
+                    feedbackElement.textContent = '';
+                    feedbackElement.className = 'feedback';
+                }, 1500);
+            } else {
+                setTimeout(showResults, 1500);
+            }
+        }
+        
+        // Show final results
+        function showResults() {
+            const endTime = new Date();
+            const timeTaken = (endTime - startTime) / 1000;
+            const percentage = (score / totalQuestions) * 100;
+            
+            questionSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            
+            document.getElementById('score').textContent = `You got ${score} out of ${totalQuestions} correct!`;
+            document.getElementById('percentage').textContent = `That's ${percentage.toFixed(1)}%!`;
+            document.getElementById('timeTaken').textContent = `Time taken: ${timeTaken.toFixed(1)} seconds`;
+            
+            const resultEmoji = document.getElementById('resultEmoji');
+            const message = document.getElementById('message');
+            
+            if (percentage === 100) {
+                resultEmoji.textContent = '🌟🌟🌟';
+                message.textContent = "WOW! Perfect score! You're a multiplication master!";
+            } else if (percentage >= 80) {
+                resultEmoji.textContent = '🌟🌟';
+                message.textContent = "Great job! You're really good at this!";
+            } else if (percentage >= 60) {
+                resultEmoji.textContent = '🌟';
+                message.textContent = "Good work! Keep practicing and you'll be a math wizard!";
+            } else {
+                resultEmoji.textContent = '💪';
+                message.textContent = "Good effort! With more practice, you'll improve!";
+            }
+        }
+        
+        // Reset game to play again
+        function resetGame() {
+            welcomeSection.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
