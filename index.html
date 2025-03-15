@@ -9,10 +9,10 @@
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             background-color: #f0f8ff;
             margin: 0;
-            padding: 10px; /* Reduced from 20px */
+            padding: 10px;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Changed from center to flex-start */
+            align-items: flex-start;
             min-height: 100vh;
         }
         
@@ -20,11 +20,11 @@
             background-color: white;
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            padding: 20px; /* Reduced from 30px */
+            padding: 20px;
             width: 90%;
             max-width: 500px;
             text-align: center;
-            margin-top: 5px; /* Added small margin at the top */
+            margin-top: 5px;
         }
         
         h1 {
@@ -56,6 +56,11 @@
         
         button:hover {
             background-color: #3a5980;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
         
         input[type="number"], input[type="text"] {
@@ -121,7 +126,7 @@
             <div class="question" id="question">What is 5 × 7?</div>
             <input type="number" id="answer" placeholder="Your answer">
             <div class="feedback" id="feedback"></div>
-            <button id="submitButton">Submit</button>
+            <button id="submitButton" disabled>Submit</button>
         </div>
         
         <!-- Results Section -->
@@ -143,6 +148,7 @@
         let score = 0;
         let startTime;
         let num1, num2, correctAnswer;
+        let isProcessing = false; // Flag to prevent multiple submissions
         
         // DOM Elements
         const welcomeSection = document.getElementById('welcome');
@@ -164,9 +170,14 @@
         submitButton.addEventListener('click', checkAnswer);
         playAgainButton.addEventListener('click', resetGame);
         answerInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !isProcessing && answerInput.value !== '') {
                 checkAnswer();
             }
+        });
+        
+        // Enable/disable submit button based on input
+        answerInput.addEventListener('input', function() {
+            submitButton.disabled = answerInput.value === '';
         });
         
         // Generate a random question
@@ -176,7 +187,9 @@
             correctAnswer = num1 * num2;
             questionElement.textContent = `What is ${num1} × ${num2}?`;
             answerInput.value = '';
+            submitButton.disabled = true; // Disable submit until answer is entered
             answerInput.focus();
+            isProcessing = false; // Reset processing flag
         }
         
         // Start the game
@@ -197,6 +210,7 @@
             startTime = new Date();
             feedbackElement.textContent = '';
             feedbackElement.className = 'feedback';
+            isProcessing = false;
             
             // Set up first question
             progressElement.textContent = `Question 1 of ${totalQuestions}`;
@@ -205,7 +219,20 @@
         
         // Check the user's answer
         function checkAnswer() {
-            if (answerInput.value === '') return;
+            // Prevent multiple submissions
+            if (isProcessing) return;
+            
+            // Prevent empty submissions
+            if (answerInput.value === '') {
+                answerInput.focus();
+                return;
+            }
+            
+            // Set processing flag
+            isProcessing = true;
+            
+            // Disable submit button
+            submitButton.disabled = true;
             
             const userAnswer = parseInt(answerInput.value);
             
@@ -262,12 +289,16 @@
                 resultEmoji.textContent = '💪';
                 message.textContent = "Good effort! With more practice, you'll improve!";
             }
+            
+            // Reset processing flag
+            isProcessing = false;
         }
         
         // Reset game to play again
         function resetGame() {
             welcomeSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
+            isProcessing = false;
         }
     </script>
 </body>
