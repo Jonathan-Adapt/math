@@ -217,48 +217,46 @@
             generateQuestion();
         }
         
-        // Check the user's answer
         function checkAnswer() {
-            // Prevent multiple submissions
-            if (isProcessing) return;
-            
-            // Prevent empty submissions
-            if (answerInput.value === '') {
-                answerInput.focus();
-                return;
-            }
-            
-            // Set processing flag
-            isProcessing = true;
-            
-            // Disable submit button
-            submitButton.disabled = true;
-            
-            const userAnswer = parseInt(answerInput.value);
-            
-            if (userAnswer === correctAnswer) {
-                feedbackElement.textContent = '✅ Correct! Well done!';
-                feedbackElement.className = 'feedback correct';
-                score++;
-            } else {
-                feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
-                feedbackElement.className = 'feedback incorrect';
-            }
-            
-            // Move to next question or end game
-            currentQuestion++;
-            
-            if (currentQuestion < totalQuestions) {
-                setTimeout(() => {
-                    progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
-                    generateQuestion();
-                    feedbackElement.textContent = '';
-                    feedbackElement.className = 'feedback';
-                }, 1500);
-            } else {
-                setTimeout(showResults, 1500);
-            }
-        }
+    // Immediately disable the submit button to prevent further clicks
+    submitButton.disabled = true;
+    
+    // Check if already processing to avoid duplicate handling
+    if (isProcessing) return;
+    
+    // Set processing flag
+    isProcessing = true;
+    
+    // Prevent empty submissions
+    if (answerInput.value === '') {
+        answerInput.focus();
+        return;
+    }
+    
+    const userAnswer = parseInt(answerInput.value);
+    
+    if (userAnswer === correctAnswer) {
+        feedbackElement.textContent = '✅ Correct! Well done!';
+        feedbackElement.className = 'feedback correct';
+        score++;
+    } else {
+        feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
+        feedbackElement.className = 'feedback incorrect';
+    }
+    
+    currentQuestion++;
+    
+    if (currentQuestion < totalQuestions) {
+        setTimeout(() => {
+            progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+            generateQuestion();
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
+        }, 1500);
+    } else {
+        setTimeout(showResults, 1500);
+    }
+}
         
         // Show final results
         function showResults() {
