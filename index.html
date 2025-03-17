@@ -162,7 +162,7 @@
         const submitButton = document.getElementById('submitButton');
         const playAgainButton = document.getElementById('playAgainButton');
 
-        highscoreElement.textContent = `Your Best Score: ${getHighscore()}`;
+        highscoreElement.textContent = `Your Best Score: ${getHighscore().toFixed(1)}`;
         
         // Event listeners
         startButton.addEventListener('click', startGame);
@@ -309,7 +309,7 @@
         function resetGame() {
             welcomeSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
-            highscoreElement.textContent = `Your Best Score: ${getHighscore()}`;
+            highscoreElement.textContent = `Your Best Score: ${getHighscore().toFixed(1)}`;
             isProcessing = false;
         }
     </script>
