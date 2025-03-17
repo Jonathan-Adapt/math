@@ -145,6 +145,7 @@
         let totalQuestions = 10;
         let score = 0;
         let startTime;
+        let questionStartTime;
         let num1, num2, correctAnswer;
         let isProcessing = false; // Flag to prevent multiple submissions
         const gameState = getGameData();
@@ -172,22 +173,37 @@
                 try {
                     const data = JSON.parse(storedData);
                     days = getDaysSinceLastPlayed(data.lastDatePlayed);
-                    if ( days && days > 1) {
+                    if (days && days > 1) {
                         data.lastDatePlayed = null;
                         data.streakCount = 0;
                     }
+                    if (!('weights' in data)) {
+                        data.weights = initNumbers();
+                        data.age = 0;
+                    }
+                    console.log(data);
                     return data;
                 } catch (error) {
                     console.error('Error parsing gameData from storage, using default values.', error);
                 }
             }
             // Return defaults if no valid data is found
-            return { streakCount: 0, lastDatePlayed: null, highscore: 0 };
+            return { streakCount: 0, lastDatePlayed: null, highscore: 0, age: 0, weights: initNumbers() };
         }
 
         // Saves the provided game data object to localStorage
         function saveGameData(gameData) {
             localStorage.setItem('gameData', JSON.stringify(gameData));
+        }
+
+        function initNumbers() {
+            const num = [];
+            for (let i = 1; i<11; ++i) {
+                for (let j=1; j<11; ++j) {
+                    num.push( {num1: i, num2: j, weight: 100.0, age: 0} );
+                }
+            }
+            return num;
         }
 
         function getDaysSinceLastPlayed(savedDate) {
@@ -230,11 +246,24 @@
             submitButton.disabled = answerInput.value === '';
         });
 
-        // Generate a random question
+        // Generate a random question, weighted by difficulty
         function generateQuestion() {
-            num1 = Math.floor(Math.random() * 10) + 1;
-            num2 = Math.floor(Math.random() * 10) + 1;
+            gameState.age++;
+            let totalWeight = gameState.weights.reduce((sum, pair) => sum + pair.weight, 0);
+            let randomThreshold = Math.random()*totalWeight;
+            for (let i = 0; i < gameState.weights.length; ++i) {
+                randomThreshold -= gameState.weights[i].weight;
+                if (randomThreshold <= 0) {
+                    num1 = gameState.weights[i].num1;
+                    num2 = gameState.weights[i].num2;
+
+                    console.log(`Total: ${totalWeight}, random: ${randomThreshold}, weight: ${gameState.weights[i].weight}`);
+                    break;
+                }
+            }
+
             correctAnswer = num1 * num2;
+            questionStartTime = new Date();
             questionElement.textContent = `What is ${num1} × ${num2}?`;
             answerInput.value = '';
             submitButton.disabled = true; // Disable submit until answer is entered
@@ -276,11 +305,12 @@
 
             // Prevent empty submissions
             if (answerInput.value === '') {
-            answerInput.focus();
-            return;
+                answerInput.focus();
+                return;
             }
 
             const userAnswer = parseInt(answerInput.value);
+            let newMeasurement = (new Date - questionStartTime)/1000;
 
             if (userAnswer === correctAnswer) {
                 feedbackElement.textContent = '✅ Correct! Well done!';
@@ -289,10 +319,14 @@
             } else {
                 feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
                 feedbackElement.className = 'feedback incorrect';
+                newMeasurement += 5; // Wrong answer penalty
             }
 
             currentQuestion++;
-
+            const index = (num1-1)*10 + num2 - 1;
+            const age = gameState.age - gameState.weights[index].age;
+            const weightOld = Math.exp(-age / 50);
+            gameState.weights[index].weight = (newMeasurement + weightOld * gameState.weights[index].weight) / (1 + weightOld); 
             if (currentQuestion < totalQuestions) {
                 setTimeout(() => {
                     progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
