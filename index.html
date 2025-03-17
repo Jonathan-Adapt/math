@@ -277,7 +277,7 @@
             document.getElementById('percentage').textContent = `That's ${percentage.toFixed(1)}%!`;
             document.getElementById('timeTaken').textContent = `Time taken: ${timeTaken.toFixed(1)} seconds`;
         
-            if (totalScore < getHighscore()) {
+            if (totalScore < getHighscore() || getHighscore() === 0) {
                 saveHighscore(totalScore);
                 document.getElementById('totalScore').innerHTML = `<b>NEW BEST Score: ${totalScore.toFixed(1)} points</b> (lower is better)`;
             }
