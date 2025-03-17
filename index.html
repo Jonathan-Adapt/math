@@ -162,7 +162,16 @@
         const submitButton = document.getElementById('submitButton');
         const playAgainButton = document.getElementById('playAgainButton');
 
-        highscoreElement.textContent = `Your Best Score: ${getHighscore().toFixed(1)}`;
+	function saveHighscore(score) {
+            localStorage.setItem('highscore', score);
+        }
+
+        function getHighscore() {
+            return localStorage.getItem('highscore') || 0;
+        }
+
+ 
+        highscoreElement.textContent = `Your Best Score: ${parseFloat(getHighscore()).toFixed(1)}`;
         
         // Event listeners
         startButton.addEventListener('click', startGame);
@@ -254,15 +263,7 @@
             }
         }
 
-        function saveHighscore(score) {
-            localStorage.setItem('highscore', score);
-        }
-
-        function getHighscore() {
-            return localStorage.getItem('highscore') || 0;
-        }
-
-        
+       
         // Show final results
         function showResults() {
             const endTime = new Date();
@@ -309,7 +310,7 @@
         function resetGame() {
             welcomeSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
-            highscoreElement.textContent = `Your Best Score: ${getHighscore().toFixed(1)}`;
+            highscoreElement.textContent = `Your Best Score: ${parseFloat(getHighscore()).toFixed(1)}`;
             isProcessing = false;
         }
     </script>
