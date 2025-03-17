@@ -15,7 +15,7 @@
             align-items: flex-start;
             min-height: 100vh;
         }
-        
+
         .container {
             background-color: white;
             border-radius: 15px;
@@ -26,21 +26,21 @@
             text-align: center;
             margin-top: 5px;
         }
-        
+
         h1 {
             color: #4a6fa5;
             margin-top: 0;
         }
-        
+
         .welcome, .question-section, .results {
             margin-bottom: 25px;
         }
-        
+
         .emoji {
             font-size: 30px;
             margin: 10px 0;
         }
-        
+
         button {
             background-color: #4a6fa5;
             color: white;
@@ -53,16 +53,16 @@
             font-family: inherit;
             margin: 5px;
         }
-        
+
         button:hover {
             background-color: #3a5980;
         }
-        
+
         button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
         }
-        
+
         input[type="number"], input[type="text"] {
             padding: 10px;
             font-size: 16px;
@@ -72,31 +72,31 @@
             text-align: center;
             font-family: inherit;
         }
-        
+
         .question {
             font-size: 24px;
             margin: 20px 0;
         }
-        
+
         .feedback {
             font-size: 18px;
             margin: 10px 0;
             min-height: 50px;
         }
-        
+
         .correct {
             color: #2ecc71;
         }
-        
+
         .incorrect {
             color: #e74c3c;
         }
-        
+
         .progress {
             margin: 20px 0;
             font-size: 16px;
         }
-        
+
         .hidden {
             display: none;
         }
@@ -107,14 +107,15 @@
         <!-- Welcome Section -->
         <div id="welcome" class="welcome">
             <h1>✨ Multiplication Master! ✨</h1>
-        <div class="highcore" id="highscore">Your Best Score: 0</div>
+            <div class="streak" id="streak">Current Streak: 0 days</div>
+            <div class="highscore" id="highscore">Your Best Score: 0</div>
             <div class="emoji">🔢 ✖️ 🧮</div>
             <p>Practice your multiplication tables from 1×1 to 10×10!</p>
             <p>Let's see how many you can get right!</p>
-            
+
             <button id="startButton">Start Practice!</button>
         </div>
-        
+
         <!-- Question Section -->
         <div id="questionSection" class="question-section hidden">
             <h1>Multiplication Master</h1>
@@ -124,7 +125,7 @@
             <div class="feedback" id="feedback"></div>
             <button id="submitButton" disabled>Submit</button>
         </div>
-        
+
         <!-- Results Section -->
         <div id="results" class="results hidden">
             <h1>🎉 Results 🎉</h1>
@@ -146,7 +147,8 @@
         let startTime;
         let num1, num2, correctAnswer;
         let isProcessing = false; // Flag to prevent multiple submissions
-        
+        const gameState = getGameData();
+
         // DOM Elements
         const welcomeSection = document.getElementById('welcome');
         const questionSection = document.getElementById('questionSection');
@@ -156,23 +158,63 @@
         const answerInput = document.getElementById('answer');
         const feedbackElement = document.getElementById('feedback');
         const highscoreElement = document.getElementById('highscore');
-        
+        const streakElement = document.getElementById('streak');
+
         // Buttons
         const startButton = document.getElementById('startButton');
         const submitButton = document.getElementById('submitButton');
         const playAgainButton = document.getElementById('playAgainButton');
 
-	function saveHighscore(score) {
-            localStorage.setItem('highscore', score);
+        // Retrieves the game data from localStorage or returns default values
+        function getGameData() {
+            const storedData = localStorage.getItem('gameData');
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    days = getDaysSinceLastPlayed(data.lastDatePlayed);
+                    if ( days && days > 1) {
+                        data.lastDatePlayed = null;
+                        data.streakCount = 0;
+                    }
+                    return data;
+                } catch (error) {
+                    console.error('Error parsing gameData from storage, using default values.', error);
+                }
+            }
+            // Return defaults if no valid data is found
+            return { streakCount: 0, lastDatePlayed: null, highscore: 0 };
         }
 
-        function getHighscore() {
-            return localStorage.getItem('highscore') || 0;
+        // Saves the provided game data object to localStorage
+        function saveGameData(gameData) {
+            localStorage.setItem('gameData', JSON.stringify(gameData));
         }
 
- 
-        highscoreElement.textContent = `Your Best Score: ${parseFloat(getHighscore()).toFixed(1)}`;
-        
+        function getDaysSinceLastPlayed(savedDate) {
+            // If there's no saved date, return null (or you could return 0 if preferred)
+            if (!savedDate) return null;
+
+            // Convert savedDate to a Date object if it isn’t one already
+            const lastPlayed = savedDate instanceof Date ? savedDate : new Date(savedDate);
+
+            // Normalize lastPlayed to midnight (year, month, day)
+            const lastPlayedDate = new Date(lastPlayed.getFullYear(), lastPlayed.getMonth(), lastPlayed.getDate());
+
+            // Get today's date and also normalize it to midnight
+            const now = new Date();
+            const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            // Calculate the difference in milliseconds and convert to days
+            const msInDay = 24 * 60 * 60 * 1000;
+            const diffInDays = (todayDate - lastPlayedDate) / msInDay;
+            console.log(`Days: ${diffInDays}.`);
+            return diffInDays;
+        }
+
+
+        highscoreElement.textContent = `Your Best Score: ${gameState.highscore.toFixed(1)}`;
+        streakElement.textContent = `Current Streak: ${gameState.streakCount} day(s)`;
+
         // Event listeners
         startButton.addEventListener('click', startGame);
         submitButton.addEventListener('click', checkAnswer);
@@ -182,12 +224,12 @@
                 checkAnswer();
             }
         });
-        
+
         // Enable/disable submit button based on input
         answerInput.addEventListener('input', function() {
             submitButton.disabled = answerInput.value === '';
         });
-        
+
         // Generate a random question
         function generateQuestion() {
             num1 = Math.floor(Math.random() * 10) + 1;
@@ -199,16 +241,16 @@
             answerInput.focus();
             isProcessing = false; // Reset processing flag
         }
-       
+
         // Start the game
         function startGame() {
             totalQuestions = 20;
-            
+
             // Hide welcome, show questions
             welcomeSection.classList.add('hidden');
             questionSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
-            
+
             // Reset game state
             currentQuestion = 0;
             score = 0;
@@ -216,70 +258,69 @@
             feedbackElement.textContent = '';
             feedbackElement.className = 'feedback';
             isProcessing = false;
-            
+
             // Set up first question
             progressElement.textContent = `Question 1 of ${totalQuestions}`;
             generateQuestion();
         }
-        
+
         function checkAnswer() {
             // Immediately disable the submit button to prevent further clicks
             submitButton.disabled = true;
-            
+
             // Check if already processing to avoid duplicate handling
             if (isProcessing) return;
-            
+
             // Set processing flag
             isProcessing = true;
-            
+
             // Prevent empty submissions
             if (answerInput.value === '') {
             answerInput.focus();
             return;
             }
-            
+
             const userAnswer = parseInt(answerInput.value);
-            
+
             if (userAnswer === correctAnswer) {
-            feedbackElement.textContent = '✅ Correct! Well done!';
-            feedbackElement.className = 'feedback correct';
-            score++;
+                feedbackElement.textContent = '✅ Correct! Well done!';
+                feedbackElement.className = 'feedback correct';
+                score++;
             } else {
-            feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
-            feedbackElement.className = 'feedback incorrect';
+                feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
+                feedbackElement.className = 'feedback incorrect';
             }
-            
+
             currentQuestion++;
-            
+
             if (currentQuestion < totalQuestions) {
-            setTimeout(() => {
-                progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
-                generateQuestion();
-                feedbackElement.textContent = '';
-                feedbackElement.className = 'feedback';
-            }, 1500);
+                setTimeout(() => {
+                    progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+                    generateQuestion();
+                    feedbackElement.textContent = '';
+                    feedbackElement.className = 'feedback';
+                }, 1500);
             } else {
                 setTimeout(showResults, 1500);
             }
         }
 
-       
         // Show final results
         function showResults() {
             const endTime = new Date();
             const timeTaken = (endTime - startTime) / 1000;
             const percentage = (score / totalQuestions) * 100;
             const totalScore = timeTaken + 5*(totalQuestions-score);
-    
+
             questionSection.classList.add('hidden');
             resultsSection.classList.remove('hidden');
-            
+
             document.getElementById('score').textContent = `You got ${score} out of ${totalQuestions} correct!`;
             document.getElementById('percentage').textContent = `That's ${percentage.toFixed(1)}%!`;
             document.getElementById('timeTaken').textContent = `Time taken: ${timeTaken.toFixed(1)} seconds`;
-        
-            if (totalScore < getHighscore() || getHighscore() === 0) {
-                saveHighscore(totalScore);
+
+            if (totalScore < gameState.highscore || gameState.highscore === 0) {
+                gameState.highscore = totalScore;
                 document.getElementById('totalScore').innerHTML = `<b>NEW BEST Score: ${totalScore.toFixed(1)} points</b> (lower is better)`;
             }
             else {
@@ -287,7 +328,7 @@
             }
             const resultEmoji = document.getElementById('resultEmoji');
             const message = document.getElementById('message');
-            
+
             if (percentage === 100) {
                 resultEmoji.textContent = '🌟🌟🌟';
                 message.textContent = "WOW! Perfect score! You're a multiplication master!";
@@ -301,16 +342,27 @@
                 resultEmoji.textContent = '💪';
                 message.textContent = "Good effort! With more practice, you'll improve!";
             }
-            
+
+            const days = getDaysSinceLastPlayed(gameState.lastDatePlayed);
+            if (days && days > 0 && days <= 1) {
+                gameState.streakCount++;
+            }
+            else if((days && days > 1) || gameState.streakCount === 0) {
+                gameState.streakCount = 1;
+            }
+            gameState.lastDatePlayed = new Date();
+            saveGameData(gameState);
+
             // Reset processing flag
             isProcessing = false;
         }
-        
+
         // Reset game to play again
         function resetGame() {
             welcomeSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
-            highscoreElement.textContent = `Your Best Score: ${parseFloat(getHighscore()).toFixed(1)}`;
+            highscoreElement.textContent = `Your Best Score: ${gameState.highscore.toFixed(1)}`;
+            streakElement.textContent = `Current Streak: ${gameState.streakCount} day(s)`;
             isProcessing = false;
         }
     </script>
