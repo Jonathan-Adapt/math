@@ -32,7 +32,7 @@
             margin-top: 0;
         }
         
-        .welcome, .question-section, .results, .num-questions {
+        .welcome, .question-section, .results {
             margin-bottom: 25px;
         }
         
@@ -107,14 +107,10 @@
         <!-- Welcome Section -->
         <div id="welcome" class="welcome">
             <h1>✨ Multiplication Master! ✨</h1>
+        <div class="highcore" id="highscore">Your Best Score: 0</div>
             <div class="emoji">🔢 ✖️ 🧮</div>
             <p>Practice your multiplication tables from 1×1 to 10×10!</p>
             <p>Let's see how many you can get right!</p>
-            
-            <div class="num-questions">
-                <p>How many questions would you like to answer?</p>
-                <input type="number" id="numQuestions" min="5" max="20" value="10">
-            </div>
             
             <button id="startButton">Start Practice!</button>
         </div>
@@ -135,6 +131,7 @@
             <div id="score">You got 8 out of 10 correct!</div>
             <div id="percentage">That's 80%!</div>
             <div id="timeTaken">Time taken: 45.2 seconds</div>
+            <div id="totalScore">Score: 42.5</div>
             <div class="emoji" id="resultEmoji">🌟🌟</div>
             <div id="message">Great job! You're really good at this!</div>
             <button id="playAgainButton">Play Again</button>
@@ -158,12 +155,14 @@
         const questionElement = document.getElementById('question');
         const answerInput = document.getElementById('answer');
         const feedbackElement = document.getElementById('feedback');
-        const numQuestionsInput = document.getElementById('numQuestions');
+        const highscoreElement = document.getElementById('highscore');
         
         // Buttons
         const startButton = document.getElementById('startButton');
         const submitButton = document.getElementById('submitButton');
         const playAgainButton = document.getElementById('playAgainButton');
+
+        highscoreElement.textContent = `Your Best Score: ${getHighscore()}`;
         
         // Event listeners
         startButton.addEventListener('click', startGame);
@@ -191,13 +190,10 @@
             answerInput.focus();
             isProcessing = false; // Reset processing flag
         }
-        
+       
         // Start the game
         function startGame() {
-            // Get number of questions from input
-            totalQuestions = parseInt(numQuestionsInput.value);
-            if (totalQuestions < 5) totalQuestions = 5;
-            if (totalQuestions > 20) totalQuestions = 20;
+            totalQuestions = 20;
             
             // Hide welcome, show questions
             welcomeSection.classList.add('hidden');
@@ -218,59 +214,76 @@
         }
         
         function checkAnswer() {
-    // Immediately disable the submit button to prevent further clicks
-    submitButton.disabled = true;
-    
-    // Check if already processing to avoid duplicate handling
-    if (isProcessing) return;
-    
-    // Set processing flag
-    isProcessing = true;
-    
-    // Prevent empty submissions
-    if (answerInput.value === '') {
-        answerInput.focus();
-        return;
-    }
-    
-    const userAnswer = parseInt(answerInput.value);
-    
-    if (userAnswer === correctAnswer) {
-        feedbackElement.textContent = '✅ Correct! Well done!';
-        feedbackElement.className = 'feedback correct';
-        score++;
-    } else {
-        feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
-        feedbackElement.className = 'feedback incorrect';
-    }
-    
-    currentQuestion++;
-    
-    if (currentQuestion < totalQuestions) {
-        setTimeout(() => {
-            progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
-            generateQuestion();
-            feedbackElement.textContent = '';
-            feedbackElement.className = 'feedback';
-        }, 1500);
-    } else {
-        setTimeout(showResults, 1500);
-    }
-}
+            // Immediately disable the submit button to prevent further clicks
+            submitButton.disabled = true;
+            
+            // Check if already processing to avoid duplicate handling
+            if (isProcessing) return;
+            
+            // Set processing flag
+            isProcessing = true;
+            
+            // Prevent empty submissions
+            if (answerInput.value === '') {
+            answerInput.focus();
+            return;
+            }
+            
+            const userAnswer = parseInt(answerInput.value);
+            
+            if (userAnswer === correctAnswer) {
+            feedbackElement.textContent = '✅ Correct! Well done!';
+            feedbackElement.className = 'feedback correct';
+            score++;
+            } else {
+            feedbackElement.textContent = `🔄 Not quite! The answer is ${correctAnswer}.`;
+            feedbackElement.className = 'feedback incorrect';
+            }
+            
+            currentQuestion++;
+            
+            if (currentQuestion < totalQuestions) {
+            setTimeout(() => {
+                progressElement.textContent = `Question ${currentQuestion + 1} of ${totalQuestions}`;
+                generateQuestion();
+                feedbackElement.textContent = '';
+                feedbackElement.className = 'feedback';
+            }, 1500);
+            } else {
+                setTimeout(showResults, 1500);
+            }
+        }
+
+        function saveHighscore(score) {
+            localStorage.setItem('highscore', score);
+        }
+
+        function getHighscore() {
+            return localStorage.getItem('highscore') || 0;
+        }
+
         
         // Show final results
         function showResults() {
             const endTime = new Date();
             const timeTaken = (endTime - startTime) / 1000;
             const percentage = (score / totalQuestions) * 100;
-            
+            const totalScore = timeTaken + 5*(totalQuestions-score);
+    
             questionSection.classList.add('hidden');
             resultsSection.classList.remove('hidden');
             
             document.getElementById('score').textContent = `You got ${score} out of ${totalQuestions} correct!`;
             document.getElementById('percentage').textContent = `That's ${percentage.toFixed(1)}%!`;
             document.getElementById('timeTaken').textContent = `Time taken: ${timeTaken.toFixed(1)} seconds`;
-            
+        
+            if (totalScore < getHighscore()) {
+                saveHighscore(totalScore);
+                document.getElementById('totalScore').innerHTML = `<b>NEW BEST Score: ${totalScore.toFixed(1)} points</b> (lower is better)`;
+            }
+            else {
+                document.getElementById('totalScore').innerHTML = `<b>Score: ${totalScore.toFixed(1)} points</b> (lower is better)`;
+            }
             const resultEmoji = document.getElementById('resultEmoji');
             const message = document.getElementById('message');
             
@@ -296,6 +309,7 @@
         function resetGame() {
             welcomeSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
+            highscoreElement.textContent = `Your Best Score: ${getHighscore()}`;
             isProcessing = false;
         }
     </script>
