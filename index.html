@@ -181,7 +181,6 @@
                         data.weights = initNumbers();
                         data.age = 0;
                     }
-                    console.log(data);
                     return data;
                 } catch (error) {
                     console.error('Error parsing gameData from storage, using default values.', error);
@@ -223,7 +222,6 @@
             // Calculate the difference in milliseconds and convert to days
             const msInDay = 24 * 60 * 60 * 1000;
             const diffInDays = (todayDate - lastPlayedDate) / msInDay;
-            console.log(`Days: ${diffInDays}.`);
             return diffInDays;
         }
 
@@ -256,8 +254,6 @@
                 if (randomThreshold <= 0) {
                     num1 = gameState.weights[i].num1;
                     num2 = gameState.weights[i].num2;
-
-                    console.log(`Total: ${totalWeight}, random: ${randomThreshold}, weight: ${gameState.weights[i].weight}`);
                     break;
                 }
             }
